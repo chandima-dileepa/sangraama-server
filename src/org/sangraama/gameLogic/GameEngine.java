@@ -173,6 +173,7 @@ public enum GameEngine implements Runnable {
                         world.destroyBody(blt.getBody());
                         bList.remove(blt);
                         System.out.println(TAG+"Bullet removed..");
+                        break;
                     }
                 }
             }

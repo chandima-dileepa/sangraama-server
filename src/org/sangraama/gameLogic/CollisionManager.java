@@ -11,11 +11,14 @@ public enum CollisionManager {
     private Contact collisions;
     private GameEngine gameEngine;
 
-     CollisionManager() {
-        this.gameEngine = GameEngine.INSTANCE;
+    CollisionManager() {
+
     }
 
     public void processCollisions(Contact collisions) {
+        Player ship;
+        Bullet bullet;
+        long bulletID = 0;
         this.collisions = collisions;
         if (this.collisions.getFixtureA().getUserData().getClass() == Ship.class
                 && this.collisions.getFixtureB().getUserData().getClass() == Ship.class) {
@@ -27,26 +30,28 @@ public enum CollisionManager {
                 || (this.collisions.getFixtureA().getUserData().getClass() == Bullet.class && this.collisions
                         .getFixtureB().getUserData().getClass() == Ship.class)) {
             System.out.println("Hittn Bullet..");
-            if (this.collisions.getFixtureA().getUserData().getClass() == Ship.class) {
-                Player ship = (Player) this.collisions.getFixtureA().getUserData();
-                Bullet bullet = (Bullet) this.collisions.getFixtureB().getUserData();
-                processBulletShipCollition(ship, bullet);
+            if (this.collisions.getFixtureA().getUserData().getClass() == Bullet.class) {
+                ship = (Player) this.collisions.getFixtureB().getUserData();
+                bullet = (Bullet) this.collisions.getFixtureA().getUserData();
             } else {
-                Player ship = (Player) this.collisions.getFixtureB().getUserData();
-                Bullet bullet = (Bullet) this.collisions.getFixtureA().getUserData();
+                ship = (Player) this.collisions.getFixtureA().getUserData();
+                bullet = (Bullet) this.collisions.getFixtureB().getUserData();
+            }
+            if (bulletID != bullet.getId()) {
                 processBulletShipCollition(ship, bullet);
+                bulletID = bullet.getId();
             }
         }
     }
 
     private void processShipsCollision() {
-            //Code to process when ships are collided.
+        // Code to process when ships are collided.
     }
 
     private void processBulletShipCollition(Player ship, Bullet bullet) {
         System.out.println("Victime ship : " + ship.getUserID());
         System.out.println("Shooter ship : " + bullet.getPlayerId());
-      //this.gameEngine.removeBullet(bullet);
-        
+        GameEngine.INSTANCE.removeBullet(bullet);
+
     }
 }
