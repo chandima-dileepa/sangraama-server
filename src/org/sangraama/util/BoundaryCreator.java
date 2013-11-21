@@ -1,13 +1,20 @@
 package org.sangraama.util;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.swing.Timer;
+
 import org.sangraama.assets.Wall;
 import org.sangraama.common.Constants;
+import org.sangraama.coordination.staticPartition.TileCoordinator;
+import org.sangraama.gameLogic.GameEngine;
+import org.sangraama.jsonprotocols.send.SangraamaTile;
 
-public class BoundaryCreator {
+public class BoundaryCreator implements Runnable{
 
     private List<Wall> wallList = new ArrayList<Wall>();
     private float worldWidth;
@@ -16,6 +23,8 @@ public class BoundaryCreator {
     private float mapOriY;
     private float mapHeight;
     private float mapWidth;
+    private float subTileWidth;
+    private float subTileHeight;
 
     public List<Wall> calculateWallBoundary() {
         readMapAndWorldDim();
@@ -36,6 +45,8 @@ public class BoundaryCreator {
         mapOriY = Float.parseFloat(prop.getProperty("maporiginy"))/Constants.scale;
         mapHeight = Float.parseFloat(prop.getProperty("mapwidth"))/Constants.scale;
         mapWidth = Float.parseFloat(prop.getProperty("mapheight"))/Constants.scale;
+        subTileWidth = Float.parseFloat(prop.getProperty("subtilewidth"))/Constants.scale;
+        subTileHeight = Float.parseFloat(prop.getProperty("subtileheight"))/Constants.scale;
     }
 
     private void generateWalls() {
@@ -57,6 +68,58 @@ public class BoundaryCreator {
         }
         if(mapOriY == (worldHeight-mapHeight)){
             wallList.add(new Wall(mapOriX,mapOriY+mapHeight,mapWidth,1));
+        }
+    }
+
+    @Override
+    public void run() {
+        Timer timer = new Timer(1000,new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                calculateWallList();
+                GameEngine.INSTANCE.addWalls(wallList);
+            }
+        });
+        timer.start();
+    }
+    
+    private void calculateWallList(){
+        float oriX, oriY;
+        boolean upWall = true, downWall = true, rightWall = true, leftWall =true; 
+        List<SangraamaTile> tileList = TileCoordinator.INSTANCE.getSubTilesCoordinations();
+        for(SangraamaTile tile : tileList){
+            oriX = tile.getX();
+            oriY = tile.getY();
+            tileList.remove(tile);
+            if(tileList.size() != 0){
+                for(SangraamaTile otherTile : tileList){
+                    if(otherTile.getX() == oriX+subTileWidth && otherTile.getY() == oriY){
+                        rightWall = false;
+                    }
+                    if(otherTile.getX() == oriX-subTileWidth && otherTile.getY() == oriY){
+                        leftWall = false;
+                    }
+                    if(otherTile.getY() == oriY+subTileHeight && otherTile.getX() == oriX){
+                        upWall = false;
+                    }
+                    if(otherTile.getY() == oriY-subTileHeight && otherTile.getX() == oriX){
+                        downWall = false;
+                    }
+                }
+            }
+            if(rightWall){
+                wallList.add(new Wall(oriX+subTileWidth,oriY,1,subTileHeight));
+            }
+            if(leftWall){
+                wallList.add(new Wall(oriX,oriY,1,subTileHeight));
+            }
+            if(downWall){
+                wallList.add(new Wall(oriX,oriY,subTileWidth,1));
+            }
+            if(upWall){
+                wallList.add(new Wall(oriX,oriY+subTileHeight,subTileWidth,1));
+            }
         }
     }
 

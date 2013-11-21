@@ -132,8 +132,8 @@ public enum GameEngine implements Runnable {
         log.info("Static Game Objects added to the game world!!");
         this.sangraamaCollisionDet = new CollisionDetector();
         world.setContactListener(sangraamaCollisionDet);
-        addWalls();
-
+        BoundaryCreator wallAdder = new BoundaryCreator();
+        wallAdder.run();
     }
 
     public void updateGameWorld() {
@@ -270,9 +270,7 @@ public enum GameEngine implements Runnable {
         return playerList;
     }
 
-    private void addWalls() {
-        BoundaryCreator wallGen = new BoundaryCreator();
-        wallList = wallGen.calculateWallBoundary();
+    public void addWalls(List<Wall> wallList) {
         for (Wall wall : wallList) {
             // System.out.println("Adding wall " + wall.getFixtureDef().userData);
             this.world.createBody(wall.getBodyDef()).createFixture(wall.getFixtureDef());

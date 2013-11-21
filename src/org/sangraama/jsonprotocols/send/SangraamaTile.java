@@ -9,4 +9,12 @@ public class SangraamaTile {
             this.w = width;
             this.h = heigth;
         }
+        
+        public float getX(){
+            return x;
+        }
+        
+        public float getY(){
+            return y;
+        }
 }
